@@ -1,0 +1,8 @@
+Name: busis.rpc
+ListenOn: 0.0.0.0:9091
+
+
+Datasource: ${PG_DATASOURCE}
+
+Log:
+  Encoding: ${LOG_ENCODING}

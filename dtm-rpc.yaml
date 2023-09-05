@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dtm-rpc
+  namespace: ohmyfans
+  labels:
+    app: dtm-rpc
+spec:
+  replicas: 1
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      app: dtm-rpc
+  template:
+    metadata:
+      labels:
+        app: dtm-rpc
+    spec:
+      containers:
+      - name: dtm-rpc
+        image: ${IMAGE}
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9091
+        envFrom:
+          - configMapRef:
+              name: pg-config
+          - configMapRef:
+              name: gozero-config
+        readinessProbe:
+          tcpSocket:
+            port: 9091
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: 9091
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 1024Mi
+        volumeMounts:
+        - name: timezone
+          mountPath: /etc/localtime
+      imagePullSecrets:
+      - name: pull-secret
+      volumes:
+        - name: timezone
+          hostPath:
+            path: /usr/share/zoneinfo/Asia/Shanghai
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: dtm-rpc-svc
+  namespace: ohmyfans
+spec:
+  ports:
+  - port: 9091
+    targetPort: 9091
+  selector:
+    app: dtm-rpc
+
+
